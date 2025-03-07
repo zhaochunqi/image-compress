@@ -35,43 +35,57 @@ Path(SOURCE_DIR).mkdir(parents=True, exist_ok=True)
 Path(COMPRESSED_DIR).mkdir(parents=True, exist_ok=True)
 
 class ImageHandler(FileSystemEventHandler):
+    def _should_process_file(self, file_path, previous_path=None, message=None):
+        """Helper method to determine if a file should be processed based on its name.
+        Returns the file path to process if it should be processed, None otherwise."""
+        filename = os.path.basename(file_path)
+        
+        # If we have a previous path, check if file changed from hidden to visible
+        if previous_path:
+            previous_filename = os.path.basename(previous_path)
+            if previous_filename.startswith('.') and not filename.startswith('.'):
+                log_msg = message or f"Detected change from hidden to visible file: {file_path}"
+                logging.info(log_msg)
+                return file_path
+        
+        # Process visible files
+        if not filename.startswith('.'):
+            return file_path
+        else:
+            logging.info(f"Skipping hidden file: {file_path}")
+            return None
+    
     def on_created(self, event):
         if event.is_directory:
             return
         logging.info(f"New file detected: {event.src_path}")
-        # Check if filename starts with a dot (hidden file)
-        filename = os.path.basename(event.src_path)
-        if not filename.startswith('.'):
-            self.process_image(event.src_path)
-        else:
-            logging.info(f"Skipping hidden file: {event.src_path}")
+        
+        file_to_process = self._should_process_file(event.src_path)
+        if file_to_process:
+            self.process_image(file_to_process)
 
     def on_modified(self, event):
         if event.is_directory:
             return
         logging.info(f"File modification detected: {event.src_path}")
-        # Check if filename starts with a dot (hidden file)
-        filename = os.path.basename(event.src_path)
-        if not filename.startswith('.'):
-            self.process_image(event.src_path)
-        else:
-            logging.info(f"Skipping hidden file: {event.src_path}")
+        
+        # Get the previous filename if it exists in our tracking
+        previous_path = getattr(event, 'previous_path', None)
+        
+        file_to_process = self._should_process_file(event.src_path, previous_path)
+        if file_to_process:
+            self.process_image(file_to_process)
             
     def on_moved(self, event):
         if event.is_directory:
             return
         # Capture file rename/move events
         logging.info(f"File moved/renamed: {event.src_path} -> {event.dest_path}")
-        # Check if source file is hidden and destination file is not hidden
-        src_filename = os.path.basename(event.src_path)
-        dest_filename = os.path.basename(event.dest_path)
         
-        if src_filename.startswith('.') and not dest_filename.startswith('.'):
-            logging.info(f"Detected rename from hidden to visible file (likely a macOS screenshot): {event.dest_path}")
-            self.process_image(event.dest_path)
-        elif not dest_filename.startswith('.'):
-            # Process other move/rename events
-            self.process_image(event.dest_path)
+        message = f"Detected rename from hidden to visible file (likely a macOS screenshot): {event.dest_path}"
+        file_to_process = self._should_process_file(event.dest_path, event.src_path, message)
+        if file_to_process:
+            self.process_image(file_to_process)
 
     def process_image(self, source_path):
         try:
