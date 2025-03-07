@@ -1,6 +1,8 @@
 services:
   image-compress:
-    image: zhaochunqi/image-compress
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       - LOSSLESS=true
       - CONVERT_TO_WEBP=true

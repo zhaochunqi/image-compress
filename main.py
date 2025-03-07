@@ -69,8 +69,22 @@ class ImageHandler(FileSystemEventHandler):
             return
         logging.info(f"File modification detected: {event.src_path}")
         
-        # Get the previous filename if it exists in our tracking
-        previous_path = getattr(event, 'previous_path', None)
+        # Check if this is a macOS screenshot file that has changed from hidden to visible
+        filename = os.path.basename(event.src_path)
+        if not filename.startswith('.') and 'Screenshot' in filename:
+            # For macOS screenshots, check if there was a hidden version
+            dir_path = os.path.dirname(event.src_path)
+            hidden_filename = f".{filename}"
+            hidden_path = os.path.join(dir_path, hidden_filename)
+            
+            # If we recently saw a hidden version of this file, treat it as a transition
+            if os.path.exists(hidden_path):
+                logging.info(f"Detected potential macOS screenshot becoming visible: {event.src_path}")
+                previous_path = hidden_path
+            else:
+                previous_path = None
+        else:
+            previous_path = None
         
         file_to_process = self._should_process_file(event.src_path, previous_path)
         if file_to_process:
