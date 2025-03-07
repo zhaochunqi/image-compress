@@ -7,5 +7,5 @@ services:
       - LOSSLESS=true
       - CONVERT_TO_WEBP=true
     volumes:
-      - ./source:/app/source
-      - ./compressed:/app/compressed
+      - ./source:/app/source:delegated
+      - ./compressed:/app/compressed:delegated

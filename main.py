@@ -184,10 +184,13 @@ def main():
         logging.warning("In lossless mode, compression quality setting will be ignored, images will be saved at highest quality\n")
 
     # Create event handler and observer
+    # Use PollingObserver instead of default Observer for better compatibility with Docker volumes on macOS
     event_handler = ImageHandler()
-    observer = Observer()
+    from watchdog.observers.polling import PollingObserver
+    observer = PollingObserver(timeout=1)  # 1 second polling interval
     observer.schedule(event_handler, SOURCE_DIR, recursive=False)
     observer.start()
+    logging.info("Using polling observer for better Docker volume compatibility")
 
     logging.info("=== Image Compression Service Started ===")
     logging.info(f"Monitoring folder: {os.path.abspath(SOURCE_DIR)}")
