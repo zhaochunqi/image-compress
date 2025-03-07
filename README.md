@@ -19,50 +19,17 @@ A powerful and efficient image compression tool that automatically monitors a di
 - PIL/Pillow library
 - watchdog library
 
-## Installation
-
-### Using Docker (Recommended)
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/zhaochunqi/image_compress.git
-   cd image_compress
-   ```
-
-2. Build and run using Docker Compose:
-   ```bash
-   docker-compose up -d
-   ```
-
-### Manual Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/zhaochunqi/image_compress.git
-   cd image_compress
-   ```
-
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Run the script:
-   ```bash
-   python image_compressor.py
-   ```
-
 ## Configuration
 
 The tool can be configured using environment variables:
 
-| Variable | Description | Default |
-|----------|-------------|----------|
-| SOURCE_DIR | Directory to monitor for new images | /app/source |
-| COMPRESSED_DIR | Directory for compressed images | /app/compressed |
-| COMPRESSION_QUALITY | Compression quality (0-100) | 80 |
-| LOSSLESS | Enable lossless compression | false |
-| CONVERT_TO_WEBP | Convert images to WebP format | true |
+| Variable            | Description                         | Default         |
+| ------------------- | ----------------------------------- | --------------- |
+| SOURCE_DIR          | Directory to monitor for new images | /app/source     |
+| COMPRESSED_DIR      | Directory for compressed images     | /app/compressed |
+| COMPRESSION_QUALITY | Compression quality (0-100)         | 80              |
+| LOSSLESS            | Enable lossless compression         | false           |
+| CONVERT_TO_WEBP     | Convert images to WebP format       | true            |
 
 ### Docker Compose Configuration
 
@@ -97,7 +64,37 @@ Current configuration:
 Compression quality: 80
 Lossless compression: true
 Convert to WebP: true
+```
 
+## macOS Specific Configuration
+
+### Using Delegate Mode for Event Handling
+
+When running this tool on macOS, especially for monitoring screenshot directories, you should use the delegate mode to ensure proper event handling. macOS has specific file system event behaviors that may cause standard monitoring to miss events.
+
+The application automatically uses a polling observer when running on macOS to improve compatibility with Docker volumes and to ensure reliable event detection for screenshots.
+
+### Screenshot Auto-Compression
+
+This tool is particularly useful for automatically compressing and optimizing screenshots on macOS. When you take a screenshot on macOS, the tool will:
+
+1. Detect the new screenshot file
+2. Automatically compress it according to your configuration
+3. Save the optimized version to your designated output directory
+
+This workflow helps manage disk space by keeping your screenshots optimized without manual intervention.
+
+### macOS Event Detection Notes
+
+On macOS, screenshot files initially appear as hidden files (with a leading dot) before becoming visible. The application has special handling for this behavior to ensure screenshots are properly detected and processed.
+
+If you're experiencing issues with event detection on macOS, try these solutions:
+
+- Ensure the application has proper permissions to access the monitored directory
+- Use the polling observer mode (enabled by default)
+- Increase the polling interval if needed by modifying the code
+
+```
 Compression results:
   - Original size: 1,234,567 bytes
   - Compressed size: 234,567 bytes
