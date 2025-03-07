@@ -1,0 +1,17 @@
+services:
+  image-compressor:
+    image: ghcr.io/zhaochunqi/image_compress:latest
+    environment:
+      - LOSSLESS=true
+      - CONVERT_TO_WEBP=true
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./source:/app/source
+      - ./compressed:/app/compressed
+    tty: true
+    stdin_open: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
