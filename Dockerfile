@@ -38,4 +38,4 @@ COPY --from=builder --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Run the application
-CMD ["python", "main.py"]
+CMD ["python", "/app/main.py"]
