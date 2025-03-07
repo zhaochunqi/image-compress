@@ -34,11 +34,8 @@ COPY --from=builder --chown=python:python /python /python
 # Copy the application from the builder
 COPY --from=builder --chown=app:app /app /app
 
-# Create necessary directories
-RUN mkdir -p /app/source /app/compressed
-
 # Place executables in the environment at the front of the path
-ENV PATH="/python/bin:$PATH"
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Run the application
 CMD ["python", "main.py"]
