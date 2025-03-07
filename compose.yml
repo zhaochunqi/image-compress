@@ -1,6 +1,6 @@
 services:
-  image-compressor:
-    image: ghcr.io/zhaochunqi/image_compress:latest
+  image-compress:
+    image: zhaochunqi/image-compress
     environment:
       - LOSSLESS=true
       - CONVERT_TO_WEBP=true

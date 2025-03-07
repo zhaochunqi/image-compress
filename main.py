@@ -39,13 +39,39 @@ class ImageHandler(FileSystemEventHandler):
         if event.is_directory:
             return
         logging.info(f"New file detected: {event.src_path}")
-        self.process_image(event.src_path)
+        # Check if filename starts with a dot (hidden file)
+        filename = os.path.basename(event.src_path)
+        if not filename.startswith('.'):
+            self.process_image(event.src_path)
+        else:
+            logging.info(f"Skipping hidden file: {event.src_path}")
 
     def on_modified(self, event):
         if event.is_directory:
             return
         logging.info(f"File modification detected: {event.src_path}")
-        self.process_image(event.src_path)
+        # Check if filename starts with a dot (hidden file)
+        filename = os.path.basename(event.src_path)
+        if not filename.startswith('.'):
+            self.process_image(event.src_path)
+        else:
+            logging.info(f"Skipping hidden file: {event.src_path}")
+            
+    def on_moved(self, event):
+        if event.is_directory:
+            return
+        # Capture file rename/move events
+        logging.info(f"File moved/renamed: {event.src_path} -> {event.dest_path}")
+        # Check if source file is hidden and destination file is not hidden
+        src_filename = os.path.basename(event.src_path)
+        dest_filename = os.path.basename(event.dest_path)
+        
+        if src_filename.startswith('.') and not dest_filename.startswith('.'):
+            logging.info(f"Detected rename from hidden to visible file (likely a macOS screenshot): {event.dest_path}")
+            self.process_image(event.dest_path)
+        elif not dest_filename.startswith('.'):
+            # Process other move/rename events
+            self.process_image(event.dest_path)
 
     def process_image(self, source_path):
         try:
