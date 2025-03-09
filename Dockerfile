@@ -8,8 +8,9 @@ ENV UV_PYTHON_INSTALL_DIR /python
 # Only use the managed Python version
 ENV UV_PYTHON_PREFERENCE=only-managed
 
+COPY .python-version .python-version
 # Install Python before the project for caching
-RUN uv python install 3.11
+RUN uv python install
 
 WORKDIR /app
 RUN --mount=type=cache,target=/root/.cache/uv \
