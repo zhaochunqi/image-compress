@@ -132,22 +132,45 @@ class ImageHandler(FileSystemEventHandler):
 
                 # Save compressed image
                 logging.info("Starting to save processed image...")
+                temp_output_path = output_path + '.temp'
+                
                 if CONVERT_TO_WEBP:
                     logging.info("Saving in WebP format")
                     if LOSSLESS:
                         logging.info("Using lossless compression mode")
-                        img.save(output_path, 'WEBP', lossless=True)
+                        img.save(temp_output_path, 'WEBP', lossless=True)
                     else:
                         logging.info(f"Using lossy compression mode, quality: {COMPRESSION_QUALITY}")
-                        img.save(output_path, 'WEBP', quality=COMPRESSION_QUALITY)
+                        img.save(temp_output_path, 'WEBP', quality=COMPRESSION_QUALITY)
                 else:
                     logging.info(f"Saving in original format ({ext})")
-                    if LOSSLESS:
-                        logging.info("Using lossless compression mode")
-                        img.save(output_path, quality=100, optimize=True)
+                    # For JPEG images, always use lossy compression with optimize=True
+                    if ext.lower() in ('.jpg', '.jpeg'):
+                        # For JPEG images, use progressive format and dynamic quality based on file size
+                        logging.info(f"Using optimized JPEG compression with progressive format")
+                        if original_size > 1024 * 1024:  # For images larger than 1MB
+                            actual_quality = min(COMPRESSION_QUALITY, 85)  # Cap quality at 85 for large images
+                        else:
+                            actual_quality = COMPRESSION_QUALITY
+                        logging.info(f"Using JPEG quality: {actual_quality}")
+                        img.save(temp_output_path, 'JPEG', quality=actual_quality, optimize=True, progressive=True)
                     else:
-                        logging.info(f"Using lossy compression mode, quality: {COMPRESSION_QUALITY}")
-                        img.save(output_path, quality=COMPRESSION_QUALITY, optimize=True)
+                        if LOSSLESS:
+                            logging.info("Using lossless compression mode")
+                            img.save(temp_output_path, quality=100, optimize=True)
+                        else:
+                            logging.info(f"Using lossy compression mode, quality: {COMPRESSION_QUALITY}")
+                            img.save(temp_output_path, quality=COMPRESSION_QUALITY, optimize=True)
+                
+                # Compare sizes and keep the smaller file
+                temp_size = os.path.getsize(temp_output_path)
+                if temp_size >= original_size:
+                    logging.info("Compressed file is larger than original, keeping original file")
+                    os.remove(temp_output_path)
+                    import shutil
+                    shutil.copy2(source_path, output_path)
+                else:
+                    os.rename(temp_output_path, output_path)
 
                 logging.info(f"Image processing completed: {source_path} -> {output_path}")
                 if os.path.exists(output_path):
