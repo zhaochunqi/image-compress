@@ -4,8 +4,17 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - LOSSLESS=true
-      - CONVERT_TO_WEBP=true
+      - SOURCE_DIR=/app/source
+      - COMPRESSED_DIR=/app/compressed
+      - COMPRESSION_QUALITY=85          # 推荐质量设置，平衡文件大小和质量
+      - LOSSLESS=false                  # 建议设为 false，获得更好的压缩比
+      - CONVERT_TO_WEBP=true           # WebP 格式通常有更好的压缩效果
     volumes:
       - ./source:/app/source:delegated
       - ./compressed:/app/compressed:delegated
+    restart: unless-stopped             # 自动重启策略
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -155,12 +155,14 @@ class ImageHandler(FileSystemEventHandler):
                         logging.info(f"Using JPEG quality: {actual_quality}")
                         img.save(temp_output_path, 'JPEG', quality=actual_quality, optimize=True, progressive=True)
                     else:
+                        # Get the original format for saving
+                        original_format = img.format or 'PNG'  # Default to PNG if format is None
                         if LOSSLESS:
                             logging.info("Using lossless compression mode")
-                            img.save(temp_output_path, quality=100, optimize=True)
+                            img.save(temp_output_path, format=original_format, quality=100, optimize=True)
                         else:
                             logging.info(f"Using lossy compression mode, quality: {COMPRESSION_QUALITY}")
-                            img.save(temp_output_path, quality=COMPRESSION_QUALITY, optimize=True)
+                            img.save(temp_output_path, format=original_format, quality=COMPRESSION_QUALITY, optimize=True)
                 
                 # Compare sizes and keep the smaller file
                 temp_size = os.path.getsize(temp_output_path)
