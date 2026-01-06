@@ -3,8 +3,8 @@ name = "image-compress"
 version = "0.1.0"
 description = "automatically monitors a directory for new images and compresses them using various optimization techniques"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 dependencies = [
-    "pillow>=11.1.0",
+    "pillow>=12.0.0",
     "watchdog>=6.0.0",
 ]
